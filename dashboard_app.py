@@ -26,6 +26,38 @@ st.set_page_config(
     layout="wide",
 )
 
+
+# ----------------------------------------------------------------------
+# Responsive tweaks: tighten spacing and shrink KPI text on narrow screens
+# (phones / split-screen windows) so nothing gets cramped or clipped.
+# ----------------------------------------------------------------------
+st.markdown(
+    """
+    <style>
+    [data-testid="stMetricValue"], [data-testid="stMetricLabel"],
+    [data-testid="stMetricValue"] p, [data-testid="stMetricLabel"] p {
+        white-space: normal !important;
+        overflow-wrap: break-word;
+        text-overflow: clip !important;
+        line-height: 1.2;
+    }
+    @media (max-width: 640px) {
+        .block-container { padding: 1rem 0.75rem 2rem 0.75rem; }
+        [data-testid="stMetricValue"] { font-size: 1.3rem; }
+        [data-testid="stMetricLabel"] { font-size: 0.8rem; }
+        [data-testid="stMarkdownContainer"] h1 { font-size: 1.6rem !important; }
+        [data-testid="stMarkdownContainer"] h3 { font-size: 1.15rem !important; }
+    }
+    @media (min-width: 641px) and (max-width: 1024px) {
+        .block-container { padding: 1.5rem 1.5rem 2rem 1.5rem; }
+        [data-testid="stMetricValue"] { font-size: 1.2rem; }
+        [data-testid="stMetricLabel"] { font-size: 0.8rem; }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.title("🎮 Video Game Sales  Dashboard")
 st.caption(
     "Explore the vgsales.csv dataset (16,598 titles, 1980-2020) dynamically. "
@@ -116,8 +148,8 @@ fig_top = px.bar(
     hover_data=["Platform", "Year"],
     labels={selected_metric: f"{selected_metric.replace('_', ' ')} (millions)", "Name": "Game"},
 )
-fig_top.update_layout(height=450)
-st.plotly_chart(fig_top, use_container_width=True)
+fig_top.update_layout(height=max(350, 32 * top_n), margin=dict(l=10, r=10, t=30, b=10))
+st.plotly_chart(fig_top, use_container_width=True, config={"responsive": True})
 
 # ----------------------------------------------------------------------
 # Visualization 2: Sales trend over time
@@ -128,7 +160,8 @@ fig_trend = px.line(
     yearly, x="Year", y=selected_metric, markers=True,
     labels={selected_metric: f"Total {selected_metric.replace('_', ' ')} (millions)"},
 )
-st.plotly_chart(fig_trend, use_container_width=True)
+fig_trend.update_layout(margin=dict(l=10, r=10, t=30, b=10))
+st.plotly_chart(fig_trend, use_container_width=True, config={"responsive": True})
 
 # ----------------------------------------------------------------------
 # Visualization 3: Genre x Platform treemap
@@ -142,8 +175,9 @@ fig_tree = px.treemap(
     tree_data, path=["Genre", "Platform"], values=selected_metric,
     color=selected_metric, color_continuous_scale="Blues",
 )
-fig_tree.update_layout(height=500)
-st.plotly_chart(fig_tree, use_container_width=True)
+tree_row_count = tree_data["Genre"].nunique()
+fig_tree.update_layout(height=max(400, 40 * tree_row_count), margin=dict(l=10, r=10, t=30, b=10))
+st.plotly_chart(fig_tree, use_container_width=True, config={"responsive": True})
 
 # ----------------------------------------------------------------------
 # Visualization 4: Regional sales comparison scatter
@@ -161,7 +195,8 @@ with col_a:
         labels={x_axis: f"{x_axis.replace('_', ' ')} (millions)",
                 y_axis: f"{y_axis.replace('_', ' ')} (millions)"},
     )
-    st.plotly_chart(fig_scatter, use_container_width=True)
+    fig_scatter.update_layout(margin=dict(l=10, r=10, t=30, b=10))
+    st.plotly_chart(fig_scatter, use_container_width=True, config={"responsive": True})
 
 # ----------------------------------------------------------------------
 # Data table (expandable)
